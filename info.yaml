@@ -17,10 +17,10 @@ project:
   # Source files must be in ./src and you must list each source file separately, one per line.
   # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
   source_files:
-    - "src/BaudGen.v"
-    - "src/async_reciever.v"
-    - "src/async_transmitter.v"
-    - "src/tt_um_uddivert_rs232.v"
+    - "BaudGen.v"
+    - "async_reciever.v"
+    - "async_transmitter.v"
+    - "tt_um_uddivert_rs232.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
