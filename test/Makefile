@@ -5,7 +5,7 @@
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v
+PROJECT_SOURCES = tt_um_uddivert_rs232.v BaudGen.v async_reciever.v async_transmitter.v
 
 ifneq ($(GATES),yes)
 
