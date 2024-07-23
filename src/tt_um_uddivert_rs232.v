@@ -36,6 +36,7 @@ end
 // Instantiate the transmitter
 async_transmitter transmitter (
     .clk(clk),
+    .rst_n(rst_n),
     .TxD_start(tx_start),
     .TxD_data(tx_data),
     .TxD(uio_out[0]),   // Use the first bit of uio_out for TxD

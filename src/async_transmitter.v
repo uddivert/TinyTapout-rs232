@@ -4,6 +4,7 @@ module async_transmitter(
     input clk,
     input TxD_start,
     input [7:0] TxD_data,
+    input rst_n,
     output TxD,
     output TxD_busy
 );
@@ -31,9 +32,18 @@ generate
     if (ClkFrequency < Baud * 8 && (ClkFrequency % Baud != 0)) ASSERTION_ERROR PARAMETER_OUT_OF_RANGE("Frequency incompatible with baud rate");
 endgenerate
 
+reg [3:0] TxD_state;
+reg [7:0] TxD_shift;
 
-reg [3:0] TxD_state = 0;
-reg [7:0] TxD_shift = 0;
+// handle resets
+always @(posedge clk) begin
+    if (!rst_n) begin
+        TxD_state <= 4'b0;
+        TxD_shift <= 8'b0;
+    end
+end
+
+
 
 wire TxD_ready = (TxD_state == 0);
 assign TxD_busy = ~TxD_ready;

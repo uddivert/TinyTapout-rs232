@@ -29,10 +29,12 @@ generate
 endgenerate
 
 // handle resets
-always @(posedge clk or negedge rst_n) begin
-    RxD_data_ready <= 0;
-    RxD_data <= 8'b0;
-    RxD_endofpacket <= 0;
+always @(posedge clk) begin
+    if (!rst_n) begin
+        RxD_data_ready <= 0;
+        RxD_data <= 8'b0;
+        RxD_endofpacket <= 0;
+    end
 end
 
 reg [3:0] RxD_state = 0;
