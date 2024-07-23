@@ -53,7 +53,10 @@ async_receiver receiver (
 );
 
 // Output the received data to uo_out
-assign uo_out[7:0] = rx_data_ready ? rx_data[7:0] : 8'b0;
+assign uo_out = rx_data_ready ? rx_data : 8'b0;
+
+// set unused pins
+assign uio_out[7:1] = 7b'0;
 
 // Configure uio_oe to set the direction of uio_out
 assign uio_oe = 8'b1; // Set bit uio_out[0] as output and uio_in[1] as input
