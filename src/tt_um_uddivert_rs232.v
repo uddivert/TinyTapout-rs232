@@ -45,6 +45,7 @@ async_transmitter transmitter (
 // Instantiate the receiver
 async_receiver receiver (
     .clk(clk),
+    .rst_n(rst_n),
     .RxD(uio_in[1]),    // Use the second bit of uio_in for RxD
     .RxD_data_ready(rx_data_ready),
     .RxD_data(rx_data),
@@ -56,7 +57,7 @@ async_receiver receiver (
 assign uo_out = rx_data_ready ? rx_data : 8'b0;
 
 // set unused pins
-assign uio_out[7:1] = 7b'0;
+assign uio_out[7:1] = 7'b0;
 
 // Configure uio_oe to set the direction of uio_out
 assign uio_oe = 8'b1; // Set bit uio_out[0] as output and uio_in[1] as input

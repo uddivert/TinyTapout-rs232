@@ -3,14 +3,15 @@
 module async_receiver(
     input clk,
     input RxD,
-    output reg RxD_data_ready = 0,
-    output reg [7:0] RxD_data = 0,  // data received, valid only (for one clock cycle) when RxD_data_ready is asserted
+    input rst_n,
+    output reg RxD_data_ready,
+    output reg [7:0] RxD_data,  // data received, valid only (for one clock cycle) when RxD_data_ready is asserted
 
     // We also detect if a gap occurs in the received stream of characters
     // // That can be useful if multiple characters are sent in burst
     // //  so that multiple characters can be treated as a "packet"
     output RxD_idle,  // asserted when no data has been received for a while
-    output reg RxD_endofpacket = 0  // asserted for one clock cycle when a packet has been detected (i.e. RxD_idle is going high)
+    output reg RxD_endofpacket  // asserted for one clock cycle when a packet has been detected (i.e. RxD_idle is going high)
 );
 
 parameter ClkFrequency = 25000000; // 25MHz
@@ -26,6 +27,13 @@ generate
     if(Oversampling < 8 || ((Oversampling & (Oversampling - 1)) != 0))
         ASSERTION_ERROR PARAMETER_OUT_OF_RANGE("Invalid oversampling value");
 endgenerate
+
+// handle resets
+always @(posedge clk or negedge rst_n) begin
+    RxD_data_ready <= 0;
+    RxD_data <= 8'b0;
+    RxD_endofpacket <= 0;
+end
 
 reg [3:0] RxD_state = 0;
 
