@@ -97,6 +97,13 @@ end
 
 // now we can accumulate the RxD bits in a shift-register
 always @(posedge clk) begin
+    if (sampleNow && RxD_state[3])
+        RxD_data <= {RxD_bit, RxD_data[7:1]};
+    if (sampleNow && RxD_state == 4'b0010 && RxD_bit)
+        RxD_data_ready <= 1;
+    else
+        RxD_data_ready <= 0;
+
     case (RxD_state)
         4'b0000: if (~RxD_bit) RxD_state <= `ifdef SIMULATION 4'b1000 `else 4'b0001 `endif;  // start bit found?
         4'b0001: if (sampleNow) RxD_state <= 4'b1000;  // sync start bit to sampleNow
@@ -111,15 +118,6 @@ always @(posedge clk) begin
         4'b0010: if (sampleNow) RxD_state <= 4'b0000;  // stop bit
         default: RxD_state <= 4'b0000;
     endcase
-end
-
-always @(posedge clk) begin
-    if (sampleNow && RxD_state[3])
-        RxD_data <= {RxD_bit, RxD_data[7:1]};
-    if (sampleNow && RxD_state == 4'b0010 && RxD_bit)
-        RxD_data_ready <= 1;
-    else
-        RxD_data_ready <= 0;
 end
 
 `ifdef SIMULATION
