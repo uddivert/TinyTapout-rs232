@@ -37,7 +37,7 @@ reg [7:0] TxD_shift;
 reg TxD_reg;
 
 // handle resets
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         TxD_state <= 4'b0;
         TxD_shift <= 8'b0;

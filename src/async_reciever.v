@@ -88,7 +88,7 @@ reg [3:0] RxD_state = 0;
 
 // now we can accumulate the RxD bits in a shift-register
 // Reset logic handled separately
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
     if (!rst_n) begin
         RxD_data_ready <= 0;
         RxD_data <= 8'b0;
