@@ -31,15 +31,6 @@ endgenerate
 // Internal signals
 reg [3:0] RxD_state = 0;
 
-// Reset logic handled separately
-always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-        RxD_data_ready <= 0;
-        RxD_data <= 8'b0;
-        RxD_endofpacket <= 0;
-    end
-end
-
 `ifdef SIMULATION
     wire RxD_bit = RxD;
     wire sampleNow = 1'b1;  // receive one bit per clock cycle
@@ -96,7 +87,14 @@ end
 `endif
 
 // now we can accumulate the RxD bits in a shift-register
-always @(posedge clk) begin
+// Reset logic handled separately
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        RxD_data_ready <= 0;
+        RxD_data <= 8'b0;
+        RxD_endofpacket <= 0;
+    end
+
     if (sampleNow && RxD_state[3])
         RxD_data <= {RxD_bit, RxD_data[7:1]};
     if (sampleNow && RxD_state == 4'b0010 && RxD_bit)
