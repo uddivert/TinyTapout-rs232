@@ -9,12 +9,19 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+The code written is self documented. For a quick understanding please refer
+to the block diagrams created
+
+### BaudGen.v
+![BaudGen](./BaudGen.png)
+
+### async_transmitter.v
+![BaudGen](./async_transmitter.png)
+
+### async_.v
+![BaudGen](./async_transmitter.png)
 
 ## How to test
-
-Explain how to use your project
+Run `make all` to see testbench results
 
 ## External hardware
-
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
