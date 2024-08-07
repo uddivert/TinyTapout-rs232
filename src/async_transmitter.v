@@ -27,51 +27,82 @@ parameter Oversampling = 1;        // Oversampling rate
     );
 `endif
 
-// Checks if frequency and baudate make sense
+// Checks if frequency and baud rate make sense
 generate
     if (ClkFrequency < Baud * 8 && (ClkFrequency % Baud != 0)) ASSERTION_ERROR PARAMETER_OUT_OF_RANGE("Frequency incompatible with baud rate");
 endgenerate
 
 reg [3:0] TxD_state;
 reg [7:0] TxD_shift;
+reg TxD_reg;
 
 // handle resets
-always @(posedge clk) begin
+always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         TxD_state <= 4'b0;
         TxD_shift <= 8'b0;
+        TxD_reg <= 1'b1; // Idle state of UART TX line is high
+    end else begin
+        if (TxD_state == 0 && TxD_start) begin
+            TxD_shift <= TxD_data; // Load data to shift register
+            TxD_state <= 4'b0100;  // Move to start bit state
+        end else if (BitTick) begin
+            case (TxD_state)
+                4'b0100: TxD_state <= 4'b1000;  // Start bit
+                4'b1000: begin
+                    TxD_reg <= TxD_shift[0];   // Transmit bit 0
+                    TxD_shift <= TxD_shift >> 1;
+                    TxD_state <= 4'b1001;
+                end
+                4'b1001: begin
+                    TxD_reg <= TxD_shift[0];   // Transmit bit 1
+                    TxD_shift <= TxD_shift >> 1;
+                    TxD_state <= 4'b1010;
+                end
+                4'b1010: begin
+                    TxD_reg <= TxD_shift[0];   // Transmit bit 2
+                    TxD_shift <= TxD_shift >> 1;
+                    TxD_state <= 4'b1011;
+                end
+                4'b1011: begin
+                    TxD_reg <= TxD_shift[0];   // Transmit bit 3
+                    TxD_shift <= TxD_shift >> 1;
+                    TxD_state <= 4'b1100;
+                end
+                4'b1100: begin
+                    TxD_reg <= TxD_shift[0];   // Transmit bit 4
+                    TxD_shift <= TxD_shift >> 1;
+                    TxD_state <= 4'b1101;
+                end
+                4'b1101: begin
+                    TxD_reg <= TxD_shift[0];   // Transmit bit 5
+                    TxD_shift <= TxD_shift >> 1;
+                    TxD_state <= 4'b1110;
+                end
+                4'b1110: begin
+                    TxD_reg <= TxD_shift[0];   // Transmit bit 6
+                    TxD_shift <= TxD_shift >> 1;
+                    TxD_state <= 4'b1111;
+                end
+                4'b1111: begin
+                    TxD_reg <= TxD_shift[0];   // Transmit bit 7
+                    TxD_state <= 4'b0010;
+                end
+                4'b0010: begin
+                    TxD_reg <= 1'b1;  // Stop bit 1
+                    TxD_state <= 4'b0011;
+                end
+                4'b0011: begin
+                    TxD_reg <= 1'b1;  // Stop bit 2
+                    TxD_state <= 4'b0000; // Return to idle state
+                end
+            endcase
+        end
     end
 end
 
+assign TxD_busy = (TxD_state != 4'b0000);
+assign TxD = TxD_reg;
 
-
-wire TxD_ready = (TxD_state == 0);
-assign TxD_busy = ~TxD_ready;
-
-always @(posedge clk)
-begin
-    if(TxD_ready & TxD_start)
-        TxD_shift <= TxD_data; // set TxD_shift to TxD_data
-    else
-        if(TxD_state[3] & BitTick)
-            TxD_shift <= (TxD_shift >> 1); // shift right one bit
-
-        case(TxD_state)
-            4'b0000: if(TxD_start) TxD_state <= 4'b0100;
-            4'b0100: if(BitTick) TxD_state <= 4'b1000;  // start bit
-            4'b1000: if(BitTick) TxD_state <= 4'b1001;  // bit 0
-            4'b1001: if(BitTick) TxD_state <= 4'b1010;  // bit 1
-            4'b1010: if(BitTick) TxD_state <= 4'b1011;  // bit 2
-            4'b1011: if(BitTick) TxD_state <= 4'b1100;  // bit 3
-            4'b1100: if(BitTick) TxD_state <= 4'b1101;  // bit 4
-            4'b1101: if(BitTick) TxD_state <= 4'b1110;  // bit 5
-            4'b1110: if(BitTick) TxD_state <= 4'b1111;  // bit 6
-            4'b1111: if(BitTick) TxD_state <= 4'b0010;  // bit 7
-            4'b0010: if(BitTick) TxD_state <= 4'b0011;  // stop1
-            4'b0011: if(BitTick) TxD_state <= 4'b0000;  // stop2
-            default: if(BitTick) TxD_state <= 4'b0000;
-        endcase
-end
-
-assign TxD = (TxD_state < 4) | (TxD_state[3] & TxD_shift[0]);  // put together the start, data and stop bits
 endmodule
+
