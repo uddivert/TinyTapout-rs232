@@ -3,38 +3,52 @@
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
-
+from cocotb.triggers import ClockCycles, RisingEdge
 
 @cocotb.test()
-async def test_project(dut):
-    dut._log.info("Start")
+async def test_rs232(dut):
+    dut._log.info("Start RS-232 Test")
 
     # Set the clock period to 10 us (100 KHz)
     clock = Clock(dut.clk, 10, units="us")
     cocotb.start_soon(clock.start())
 
-    # Reset
-    dut._log.info("Reset")
-    dut.ena.value = 1
+    # Reset the device
+    dut._log.info("Resetting the device")
+    dut.rst_n.value = 0
+    dut.ena.value = 0
     dut.ui_in.value = 0
     dut.uio_in.value = 0
-    dut.rst_n.value = 0
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
-    dut._log.info("Test project behavior")
+    # Enable the module
+    dut._log.info("Enabling the module")
+    dut.ena.value = 1
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
+    # Test Case: Transmit Data
+    test_data = 0xA5  # Example data to transmit
+    dut.ui_in.value = test_data  # Input data to be transmitted
 
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
+    dut._log.info(f"Transmitting data: {test_data}")
+    await RisingEdge(dut.clk)
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    #assert dut.uo_out.value == 50
+    # Wait to simulate transmission time
+    await ClockCycles(dut.clk, 100)  # Adjust based on the baud rate
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    # Assert the transmitter output (TxD) is valid
+    assert dut.uio_out.value == test_data & 0x01, f"TxD expected {test_data & 0x01}, got {dut.uio_out.value}"
+
+    # Test Case: Receive Data
+    received_data = 0x3C  # Example data to receive
+    dut.uio_in.value = received_data  # Simulate receiving this data
+
+    dut._log.info(f"Receiving data: {received_data}")
+    await ClockCycles(dut.clk, 100)  # Wait for the receiver to process
+
+    # Assert the received data is valid
+    # assert dut.uo_out.value == received_data, f"RxD expected {received_data}, got {dut.uo_out.value}"
+
+    # End of the test
+    dut._log.info("Test completed")
+
